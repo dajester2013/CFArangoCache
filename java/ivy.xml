@@ -24,7 +24,7 @@ limitations under the License.
 
     <dependencies>
         <!-- runtime dependencies -->
-        <dependency org="at.orz" name="arangodb-java-driver" rev="1.4+" conf="runtime->master"/>
+        <dependency org="at.orz" name="arangodb-java-driver" rev="1.4+" conf="runtime->master,runtime"/>
     
         <!-- compile dependencies -->
 		<dependency org="org.getrailo" name="railo.core" rev="4.2+" conf="compile->master">
