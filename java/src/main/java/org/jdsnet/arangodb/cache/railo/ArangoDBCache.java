@@ -69,7 +69,13 @@ public class ArangoDBCache implements Cache2, Cache {
 	 */
 	@Override
 	public boolean contains(String key) {
-		return false;
+		try {
+			return driver.getDocument(toDocumentId(key), Object.class).isError();
+		} catch (ArangoException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}
 	}
 
 	/* (non-Javadoc)
