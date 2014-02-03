@@ -31,6 +31,7 @@ limitations under the License.
 			<artifact name="railo.core" type="jar" />
 			<artifact name="railo.core" type="jar" ext="rc" />
 		</dependency>
+		<dependency org="javax.servlet" name="servlet-api" rev="latest.release" conf="compile->master" />
 		<dependency org="javax.servlet" name="jsp-api" rev="latest.release" conf="compile->master" />
 		
         <!-- test dependencies -->

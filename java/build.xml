@@ -58,9 +58,9 @@ limitations under the License.
     ===============
     -->
     <target name="resources" description="Copy resources into classpath">
-        <!-- <copy todir="${classes.dir}">
+        <copy todir="${classes.dir}">
             <fileset dir="${resources.dir}"/>
-        </copy> -->
+        </copy>
     </target>
 
     <target name="compile" depends="resolve,resources" description="Compile code">

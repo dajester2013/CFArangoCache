@@ -10,15 +10,10 @@ import railo.runtime.type.Struct;
 public class ArangoDBCacheEntry implements CacheEntry {
 	
 	private int hits = 0;
-	private Serializable value;
-
-	public ArangoDBCacheEntry setValue(Serializable value) {
-		this.value = value;
-		return this;
-	}
+	private ArangoDBCacheDocument value;
 	
-	public static ArangoDBCacheEntry instance(Serializable value) {
-		return (new ArangoDBCacheEntry()).setValue(value);
+	public ArangoDBCacheEntry(ArangoDBCacheDocument value) {
+		this.value = value;
 	}
 	
 	@Override
