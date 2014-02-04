@@ -1,41 +1,41 @@
 package org.jdsnet.arangodb.cache.railo.test;
 
-import java.io.IOException;
-
 import static junit.framework.Assert.*;
 
-import org.jdsnet.arangodb.cache.railo.ArangoDBCache;
-import org.jdsnet.arangodb.util.CommonSerializer;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import java.io.IOException;
+
+import org.jdsnet.annotation.Order;
+import org.jdsnet.junit.CacheTest;
+import org.jdsnet.junit.OrderedRunner;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
-import at.orz.arangodb.entity.CollectionEntity;
-import railo.runtime.type.KeyImpl;
-import railo.runtime.type.StructImpl;
-
-public class BasicCacheObjectTest {
-
-	private static ArangoDBCache cache;
+@RunWith(OrderedRunner.class)
+public class BasicCacheObjectTest extends CacheTest {
 	
-	@BeforeClass
-	public static void setUp() throws IOException {
-		StructImpl arguments = new StructImpl();
-		
-		arguments.put(KeyImpl.getInstance("database"), "test");
-		
-		cache = new ArangoDBCache("Cache", arguments);
-		cache.setSerializer(new CommonSerializer());
+	public BasicCacheObjectTest() throws IOException {super();}
+
+	protected String getDatabase() {
+		return "BasicCacheObjectTest";
 	}
 
-	@AfterClass
-	public static void tearDown() {
-		cache.close();
+	@Test
+	@Order(order = 1)
+	public void VerifyCache() throws Throwable {
+		cache.verify();
 	}
 	
 	@Test
-	public void TestCacheIsSetup() {
-		assertTrue("Expected to get the collection instance.",cache.getCollection() instanceof CollectionEntity);
+	@Order(order = 2)
+	public void TestCacheStoreObject() throws Throwable {
+		cache.put("key", "value", 0L, 0L);
+		assertEquals(1L,cache.getConnection().getCollectionCount(cache.getCacheName()).getCount());
+	}
+	
+	@Test
+	@Order(order = 100000)
+	public void Cleanup() throws Throwable {
+		this.cleanup();
 	}
 	
 }

@@ -96,6 +96,7 @@ limitations under the License.
                 <fileset dir="${test.src.dir}">
                     <include name="**/*Test*.java"/>
                     <exclude name="**/AllTests.java"/>
+                    <exclude name="**/org/jdsnet/junit/CacheTest.java"/>
                 </fileset>
             </batchtest>
         </junit>

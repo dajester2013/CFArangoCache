@@ -31,7 +31,6 @@ import railo.runtime.type.Struct;
 public class ArangoDBCache implements Cache2, Cache {
 
 	private ArangoDriver driver;
-	private CollectionEntity collection;
 	private String cacheName;
 	private SerializerUtil serializer = new RailoSerializer();
 
@@ -44,8 +43,16 @@ public class ArangoDBCache implements Cache2, Cache {
 		return this;
 	}
 	
-	public CollectionEntity getCollection() {
-		return collection;
+	public SerializerUtil getSerializer() {
+		return serializer;
+	}
+	
+	public String getCacheName() {
+		return cacheName;
+	}
+	
+	public ArangoDriver getConnection() throws ArangoException {
+		return driver;
 	}
 	
 	/** 
@@ -65,9 +72,9 @@ public class ArangoDBCache implements Cache2, Cache {
 
 	private void initCollection() throws ArangoException {
 		try {
-			collection = driver.getCollection(cacheName);
+			driver.getCollection(cacheName);
 		} catch(ArangoException e) {
-			collection = driver.createCollection(cacheName);
+			driver.createCollection(cacheName);
 			driver.createIndex(cacheName, IndexType.HASH, false, "lifeSpan");
 			driver.createIndex(cacheName, IndexType.HASH, false, "expires");
 			driver.createIndex(cacheName, IndexType.HASH, false, "idle");
@@ -230,14 +237,21 @@ public class ArangoDBCache implements Cache2, Cache {
 
 	@Override
 	public void clear() throws IOException {
-		// TODO Auto-generated method stub
-
+		try {
+			driver.truncateCollection(cacheName);
+		} catch(ArangoException e) {
+			throw new IOException(e);
+		}
 	}
 
 	@Override
 	public void verify() throws CacheException {
-		// TODO Auto-generated method stub
-
+		try {
+			driver.getCollection(cacheName);
+			driver.getCollectionCount(cacheName);
+		} catch(Throwable e) {
+			throw new CacheException("Could not verify the collection.");
+		}
 	}
 
 	public void close() {
