@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>CFArangoCache::Driver</name>
+	<name>CFArangoCache Railo Ext</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -12,11 +12,11 @@
 		</buildCommand>
 		<buildCommand>
 			<name>org.eclipse.ui.externaltools.ExternalToolBuilder</name>
-			<triggers>clean,full,incremental,</triggers>
+			<triggers>full,incremental,</triggers>
 			<arguments>
 				<dictionary>
 					<key>LaunchConfigHandle</key>
-					<value>&lt;project&gt;/.externalToolBuilders/New_Builder.launch</value>
+					<value>&lt;project&gt;/.externalToolBuilders/Cache Driver Ext Builder.launch</value>
 				</dictionary>
 			</arguments>
 		</buildCommand>

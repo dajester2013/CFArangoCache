@@ -2,7 +2,7 @@ package org.jdsnet.arangodb.util;
 
 import railo.commons.io.cache.Cache;
 import railo.commons.io.cache.CacheEntry;
-import railo.loader.engine.CFMLEngineFactory;
+import railo.runtime.op.CastImpl;
 import railo.runtime.type.Struct;
 import railo.runtime.type.StructImpl;
 import railo.runtime.type.dt.TimeSpan;
@@ -19,7 +19,7 @@ public class CacheUtil {
 	
 	public static Object toTimespan(long timespan) {
 		if (timespan == 0) return "";
-		TimeSpan ts = CFMLEngineFactory.getInstance().getCastUtil().toTimespan(new Double(timespan / (24D*60D*1000)),null);
+		TimeSpan ts = CastImpl.getInstance().toTimespan(new Double(timespan / (24D*60D*1000)),null);
 		if (ts == null) return "";
 		return ts;
 	}

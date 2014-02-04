@@ -6,31 +6,23 @@ package org.jdsnet.arangodb.cache.railo;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
 
-import org.jdsnet.arangodb.util.CacheUtil;
-import org.jdsnet.arangodb.util.Serializer;
+import org.jdsnet.arangodb.util.RailoSerializer;
+import org.jdsnet.arangodb.util.SerializerUtil;
 
 import at.orz.arangodb.ArangoDriver;
 import at.orz.arangodb.ArangoException;
 import at.orz.arangodb.entity.CollectionEntity;
-import at.orz.arangodb.entity.CollectionStatus;
-import at.orz.arangodb.entity.DocumentEntity;
 import at.orz.arangodb.entity.IndexType;
-import at.orz.arangodb.util.MapBuilder;
 import railo.commons.io.cache.Cache;
 import railo.commons.io.cache.Cache2;
 import railo.commons.io.cache.CacheEntry;
 import railo.commons.io.cache.CacheEntryFilter;
 import railo.commons.io.cache.CacheKeyFilter;
 import railo.commons.io.cache.exp.CacheException;
-import railo.loader.engine.CFMLEngine;
-import railo.loader.engine.CFMLEngineFactory;
 import railo.runtime.config.Config;
 import railo.runtime.exp.PageException;
-import railo.runtime.type.Collection.Key;
 import railo.runtime.type.Struct;
-import railo.runtime.util.Cast;
 
 /**
  * @author jesse.shaffer
@@ -41,10 +33,19 @@ public class ArangoDBCache implements Cache2, Cache {
 	private ArangoDriver driver;
 	private CollectionEntity collection;
 	private String cacheName;
-	private Serializer serializer;
+	private SerializerUtil serializer = new RailoSerializer();
 
 	public ArangoDBCache(String cacheName, Struct arguments) throws IOException {
 		init(cacheName, arguments);
+	}
+	
+	public ArangoDBCache setSerializer(SerializerUtil su) {
+		this.serializer = su;
+		return this;
+	}
+	
+	public CollectionEntity getCollection() {
+		return collection;
 	}
 	
 	/** 
@@ -55,6 +56,7 @@ public class ArangoDBCache implements Cache2, Cache {
 			this.cacheName = cacheName;
 			driver = ArangoDBDriverFactory.openConnection(arguments);
 			initCollection();
+			
 			// TODO add scheduled task to purge expired...
 		} catch (PageException | ArangoException e) {
 			throw new IOException("Error connecting to ArangoDB.", e);
@@ -184,7 +186,7 @@ public class ArangoDBCache implements Cache2, Cache {
 			doc.setLifeSpan(life);
 			
 			save(doc);
-		} catch (PageException | ArangoException e) {
+		} catch (Throwable e) {
 			e.printStackTrace();
 		}
 

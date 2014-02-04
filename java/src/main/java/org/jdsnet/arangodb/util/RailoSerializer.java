@@ -8,7 +8,7 @@ import railo.runtime.PageContext;
 import railo.runtime.exp.PageException;
 import railo.runtime.util.Cast;
 
-public class Serializer {
+public class RailoSerializer implements SerializerUtil {
 
 	private static final String SERIALIZE_JSON_CLASS="railo.runtime.functions.conversion.SerializeJSON";
 	private static final String DESERIALIZE_JSON_CLASS="railo.runtime.functions.conversion.DeserializeJSON";
@@ -102,11 +102,11 @@ public class Serializer {
 		return engine;
 	}
 
-	public Object evaluate(Object obj) throws PageException{
-		return evaluate(pc(), obj);
+	public Object deserialize(Object obj) throws PageException{
+		return deserialize(pc(), obj);
 	}
 	
-	public Object evaluate(PageContext pc, Object obj) throws PageException{
+	public Object deserialize(PageContext pc, Object obj) throws PageException{
 		Cast caster = engine.getCastUtil();
 		try {
 			

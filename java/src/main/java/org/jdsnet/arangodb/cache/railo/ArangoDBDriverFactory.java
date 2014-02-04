@@ -2,8 +2,8 @@ package org.jdsnet.arangodb.cache.railo;
 
 import java.util.HashMap;
 
-import railo.loader.engine.CFMLEngineFactory;
 import railo.runtime.exp.PageException;
+import railo.runtime.op.CastImpl;
 import railo.runtime.type.KeyImpl;
 import railo.runtime.type.Struct;
 import railo.runtime.util.Cast;
@@ -23,7 +23,7 @@ public class ArangoDBDriverFactory {
 	private static HashMap<ArangoDriver, ArangoConfigure> configMap = new HashMap<ArangoDriver, ArangoConfigure>();
 	
 	public static ArangoDriver openConnection(Struct arguments) throws PageException {
-		Cast caster = CFMLEngineFactory.getInstance().getCastUtil();
+		Cast caster = CastImpl.getInstance();
 		ArangoConfigure config = new ArangoConfigure();
 		
 		config.setHost(				caster.toString(	arguments.get(KeyImpl.init("host")		,DEFAULT_HOST	)));
@@ -31,6 +31,8 @@ public class ArangoDBDriverFactory {
 //		config.setDefaultDatabase(	caster.toString(	arguments.get(KeyImpl.init("database")	,DEFAULT_DB		)));
 		config.setUser(				caster.toString(	arguments.get(KeyImpl.init("user")		,DEFAULT_USER	)));
 		config.setPassword(			caster.toString(	arguments.get(KeyImpl.init("password")	,DEFAULT_PWRD	)));
+		
+		config.init();
 		
 		String db = caster.toString(arguments.get(KeyImpl.init("database")	,DEFAULT_DB));
 		ArangoDriver drv = new ArangoDriver(config);
@@ -46,7 +48,9 @@ public class ArangoDBDriverFactory {
 		
 		try {
 			drv.createDatabase(db);
-		} catch(ArangoException ex) {}
+		} catch(ArangoException ex) {
+			ex.printStackTrace();
+		}
 		
 		drv.setDefaultDatabase(db);
 		return drv;
