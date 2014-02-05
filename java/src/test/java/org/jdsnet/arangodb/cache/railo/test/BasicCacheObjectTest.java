@@ -10,11 +10,14 @@ import org.jdsnet.junit.OrderedRunner;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import railo.commons.io.cache.CacheEntry;
+
 @RunWith(OrderedRunner.class)
 public class BasicCacheObjectTest extends CacheTest {
 	
 	public BasicCacheObjectTest() throws IOException {super();}
-
+	
+	public String key = "key";
 	protected String getDatabase() {
 		return "BasicCacheObjectTest";
 	}
@@ -28,8 +31,13 @@ public class BasicCacheObjectTest extends CacheTest {
 	@Test
 	@Order(order = 2)
 	public void TestCacheStoreObject() throws Throwable {
-		cache.put("key", "value", 0L, 0L);
+		String key = "key";
+		String value = "value";
+		
+		cache.put(key, value, 0L, 0L);
 		assertEquals(1L,cache.getConnection().getCollectionCount(cache.getCacheName()).getCount());
+		assertTrue(cache.getCacheEntry(key) instanceof CacheEntry && cache.getCacheEntry(key) != null);
+		assertEquals(value,cache.getCacheEntry(key).getValue());
 	}
 	
 	@Test

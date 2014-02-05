@@ -4,7 +4,6 @@
 package org.jdsnet.arangodb.cache.railo;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 
 import org.jdsnet.arangodb.util.RailoSerializer;
@@ -12,7 +11,7 @@ import org.jdsnet.arangodb.util.SerializerUtil;
 
 import at.orz.arangodb.ArangoDriver;
 import at.orz.arangodb.ArangoException;
-import at.orz.arangodb.entity.CollectionEntity;
+import at.orz.arangodb.entity.DocumentEntity;
 import at.orz.arangodb.entity.IndexType;
 import railo.commons.io.cache.Cache;
 import railo.commons.io.cache.Cache2;
@@ -118,8 +117,21 @@ public class ArangoDBCache implements Cache2, Cache {
 
 	@Override
 	public CacheEntry getCacheEntry(String key) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		CacheEntry entry = null;
+		try {
+			DocumentEntity<ArangoDBCacheDocument> document = driver.getDocument(toDocumentId(key),ArangoDBCacheDocument.class);
+			
+			if (document.isError()) {
+				throw new IOException(document.getErrorMessage());
+			} else {
+				ArangoDBCacheDocument entity = document.getEntity();
+				entry = new ArangoDBCacheEntry(entity,serializer);
+			}
+		} catch (ArangoException e) {
+			throw new IOException(e);
+		}
+		
+		return entry;
 	}
 
 	@Override

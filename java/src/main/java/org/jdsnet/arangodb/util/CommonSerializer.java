@@ -35,7 +35,7 @@ public class CommonSerializer implements SerializerUtil {
 	public Object deserialize(Object obj) throws PageException, IOException, ClassNotFoundException {
 		String serStr = CastImpl.getInstance().toString(obj,"");
 		if (serStr.length() > 0) {
-			ByteArrayInputStream binstr = new ByteArrayInputStream(serStr.getBytes());
+			ByteArrayInputStream binstr = new ByteArrayInputStream(Base64Coder.decode(serStr));
 			ObjectInputStream instr = new ObjectInputStream(binstr);
 			return instr.readObject();
 		}
