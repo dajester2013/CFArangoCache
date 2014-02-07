@@ -20,6 +20,10 @@ public class ArangoDBCacheEntry implements CacheEntry {
 		this.serializer = serializer;
 	}
 	
+	public ArangoDBCacheDocument getDocument() {
+		return value;
+	}
+	
 	@Override
 	public Date created() {
 		// TODO Auto-generated method stub

@@ -16,7 +16,13 @@ public class ArangoDBCacheDocument {
 	private int hits = 0;
 	private int lastAccessed = 0;
 	private int lastUpdated = 0;
-
+	
+	
+	public ArangoDBCacheDocument hit() {
+		this.hits++;
+		return this;
+	}
+	
 ///////////////////////////////////////////////////////////////////////////////
 // setters
 ///////////////////////////////////////////////////////////////////////////////
