@@ -2,11 +2,14 @@ package org.jdsnet.arangodb.cache.railo;
 
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 
 import org.jdsnet.arangodb.util.SerializerUtil;
 
 import railo.commons.io.cache.CacheEntry;
+import railo.commons.lang.SizeOf;
 import railo.runtime.type.Struct;
 
 public class ArangoDBCacheEntry implements CacheEntry {
@@ -26,8 +29,9 @@ public class ArangoDBCacheEntry implements CacheEntry {
 	
 	@Override
 	public Date created() {
-		// TODO Auto-generated method stub
-		return null;
+		Calendar c = Calendar.getInstance(TimeZone.getDefault());
+		c.setTimeInMillis(value.getCreatedOn());
+		return c.getTime();
 	}
 
 	@Override
@@ -70,26 +74,26 @@ public class ArangoDBCacheEntry implements CacheEntry {
 
 	@Override
 	public Date lastHit() {
-		// TODO Auto-generated method stub
-		return null;
+		Calendar c = Calendar.getInstance(TimeZone.getDefault());
+		c.setTimeInMillis(value.getLastAccessed());
+		return c.getTime();
 	}
 
 	@Override
 	public Date lastModified() {
-		// TODO Auto-generated method stub
-		return null;
+		Calendar c = Calendar.getInstance(TimeZone.getDefault());
+		c.setTimeInMillis(value.getLastUpdated());
+		return c.getTime();
 	}
 
 	@Override
 	public long liveTimeSpan() {
-		// TODO Auto-generated method stub
-		return 0;
+		return value.getLifeSpan();
 	}
 
 	@Override
 	public long size() {
-		// TODO Auto-generated method stub
-		return 0;
+		return SizeOf.size(value);
 	}
 
 }

@@ -6,7 +6,9 @@ package org.jdsnet.arangodb.cache.railo;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
 
+import org.jdsnet.arangodb.util.CacheUtil;
 import org.jdsnet.arangodb.util.RailoSerializer;
 import org.jdsnet.arangodb.util.SerializerUtil;
 
@@ -25,6 +27,7 @@ import railo.commons.io.cache.exp.CacheException;
 import railo.runtime.config.Config;
 import railo.runtime.exp.PageException;
 import railo.runtime.type.Struct;
+import railo.runtime.type.StructImpl;
 
 /**
  * @author jesse.shaffer
@@ -37,7 +40,9 @@ public class ArangoDBCache implements Cache2, Cache {
 	private SerializerUtil serializer = new RailoSerializer();
 	private long hits=0;
 	private long misses=0;
-
+	
+	public ArangoDBCache() {}
+	
 	public ArangoDBCache(String cacheName, Struct arguments) throws IOException {
 		init(cacheName, arguments);
 	}
@@ -84,6 +89,11 @@ public class ArangoDBCache implements Cache2, Cache {
 			driver.createIndex(cacheName, IndexType.HASH, false, "idle");
 		}
 	}
+	
+	protected void startCleaner() {
+		Timer timer = new Timer(true);
+		timer.schedule(new ArangoDBCleanerTask(this), 0, 100000);
+	}
 
 	@Override
 	public void init(Config webConfig, String cacheName, Struct arguments)
@@ -94,10 +104,9 @@ public class ArangoDBCache implements Cache2, Cache {
 	@Override
 	public boolean contains(String key) {
 		try {
+			CacheUtil.flushInvalidDocuments(this);
 			return !driver.getDocument(toDocumentId(key),ArangoDBCacheDocument.class).isError();
 		} catch (ArangoException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 			return false;
 		}
 	}
@@ -105,8 +114,8 @@ public class ArangoDBCache implements Cache2, Cache {
 	@Override
 	public List<CacheEntry> entries() throws IOException {
 		List<CacheEntry> result = new ArrayList<CacheEntry>();
-        
 		try {
+			CacheUtil.flushInvalidDocuments(this);
 			CursorEntity<ArangoDBCacheDocument> cursor = driver.executeSimpleAll(cacheName, 0, 0, ArangoDBCacheDocument.class);
 
 			checkEntityError(cursor);
@@ -116,6 +125,7 @@ public class ArangoDBCache implements Cache2, Cache {
 					result.add(new ArangoDBCacheEntry(doc, serializer));
 				}
 			}
+			// TODO: thread to update the expires on the result entries
 		} catch (ArangoException e) {
 			throw new IOException(e);
 		}
@@ -128,6 +138,8 @@ public class ArangoDBCache implements Cache2, Cache {
 		List<CacheEntry> result = new ArrayList<CacheEntry>();
         
 		try {
+			CacheUtil.flushInvalidDocuments(this);
+
 			CursorEntity<ArangoDBCacheDocument> cursor = driver.executeSimpleAll(cacheName, 0, 0, ArangoDBCacheDocument.class);
 
 			checkEntityError(cursor);
@@ -139,6 +151,7 @@ public class ArangoDBCache implements Cache2, Cache {
 					}
 				}
 			}
+			// TODO: thread to update the expires on the result entries
 		} catch (ArangoException e) {
 			throw new IOException(e);
 		}
@@ -151,6 +164,8 @@ public class ArangoDBCache implements Cache2, Cache {
 		List<CacheEntry> result = new ArrayList<CacheEntry>();
         
 		try {
+			CacheUtil.flushInvalidDocuments(this);
+			
 			CursorEntity<ArangoDBCacheDocument> cursor = driver.executeSimpleAll(cacheName, 0, 0, ArangoDBCacheDocument.class);
 
 			checkEntityError(cursor);
@@ -163,6 +178,8 @@ public class ArangoDBCache implements Cache2, Cache {
 					}
 				}
 			}
+			
+			// TODO: thread to update the expires on the result entries
 		} catch (ArangoException e) {
 			throw new IOException(e);
 		}
@@ -175,13 +192,14 @@ public class ArangoDBCache implements Cache2, Cache {
 		DocumentEntity<ArangoDBCacheDocument> document;
 		
 		try {
+			CacheUtil.flushInvalidDocuments(this);
 			document = driver.getDocument(toDocumentId(key),ArangoDBCacheDocument.class);
-		} catch (ArangoException e) {
+			checkEntityError(document);
+		} catch (ArangoException | CacheException e) {
 			misses++;
-			throw new CacheException(e.getMessage());
+			throw new IOException(e);
 		}
 		
-		checkEntityError(document);
 		ArangoDBCacheDocument entity = document.getEntity();
 		try {
 			save(entity.hit());
@@ -197,16 +215,21 @@ public class ArangoDBCache implements Cache2, Cache {
 	@Override
 	public CacheEntry getCacheEntry(String key, CacheEntry defaultValue) {
 		try {
+			CacheUtil.flushInvalidDocuments(this);
 			return getCacheEntry(key);
-		} catch(IOException e) {
+		} catch(IOException | ArangoException e) {
 			return defaultValue;
 		}
 	}
 
 	@Override
 	public Struct getCustomInfo() {
-		// TODO Auto-generated method stub
-		return null;
+		StructImpl info = new StructImpl();
+		info.put("driverConfiguration"	,ArangoDBDriverFactory.getConfiguration(driver));
+		info.put("hits"					,hits);
+		info.put("misses"				,misses);
+		info.put("cacheName"			,cacheName);
+		return info;
 	}
 
 	@Override
@@ -234,6 +257,8 @@ public class ArangoDBCache implements Cache2, Cache {
 	@Override
 	public List<String> keys() throws IOException {
 		try {
+			CacheUtil.flushInvalidDocuments(this);
+			
 			List<String> docHandles = driver.getDocuments(cacheName, true);
 			List<String> result = new ArrayList<String>(docHandles.size());
 			int i = 0;
@@ -250,6 +275,8 @@ public class ArangoDBCache implements Cache2, Cache {
 	@Override
 	public List<String> keys(CacheKeyFilter filter) throws IOException {
 		try {
+			CacheUtil.flushInvalidDocuments(this);
+			
 			List<String> docHandles = driver.getDocuments(cacheName, true);
 			List<String> result = new ArrayList<String>();
 			for (String documentHandle: docHandles) {
@@ -292,25 +319,38 @@ public class ArangoDBCache implements Cache2, Cache {
 
 	@Override
 	public void put(String key, Object value, Long idleTime, Long lifeSpan) {
-		int created = ((Long) System.currentTimeMillis()).intValue();
+		long now = System.currentTimeMillis();
 		// int idle = idleTime == null ? 0 : idleTime.intValue(); idle not
 		// supported since version 2
-		int idle = 0;
-		int life = lifeSpan == null ? 0 : lifeSpan.intValue();
-
-		ArangoDBCacheDocument doc = new ArangoDBCacheDocument();
-		try {
-			doc.setKey(key);
-			doc.setData(serializer.serialize(value));
-			doc.setCreatedOn(created);
-			doc.setIdle(idle);
-			doc.setLifeSpan(life);
-			
-			save(doc);
-		} catch (Throwable e) {
-			e.printStackTrace();
+		long idle = 0;
+		long life = lifeSpan == null ? 0 : lifeSpan;
+		
+		ArangoDBCacheDocument doc;
+		if (contains(key)) {
+			try {
+				doc = ((ArangoDBCacheEntry) getCacheEntry(key)).getDocument();
+				doc.setLastUpdated(now);
+				save(doc);
+			} catch (Throwable e) {}
+		} else {
+			doc = new ArangoDBCacheDocument();
+			try {
+				doc.setKey(key);
+				doc.setData(serializer.serialize(value));
+				doc.setCreatedOn(now);
+				doc.setLastAccessed(now);
+				doc.setLastUpdated(now);
+				doc.setIdle(idle);
+				doc.setLifeSpan(life);
+				
+				if (life > 0)
+					doc.setExpires(now + life);
+				else
+					doc.setExpires(0);
+				
+				save(doc);
+			} catch (Throwable e) {}
 		}
-
 	}
 
 	@Override
@@ -326,6 +366,8 @@ public class ArangoDBCache implements Cache2, Cache {
 	@Override
 	public int remove(CacheKeyFilter filter) throws IOException {
 		try {
+			CacheUtil.flushInvalidDocuments(this);
+			
 			List<String> docHandles = driver.getDocuments(cacheName, true);
 			int result = 0;
 			for (String documentHandle: docHandles) {
@@ -375,7 +417,9 @@ public class ArangoDBCache implements Cache2, Cache {
 		List<Object> result = new ArrayList<Object>(entries.size());
 		int i = 0;
 		for (CacheEntry e : entries) {
-			result.add(i++,e.getValue());
+			if (filter.accept(e.getKey())) {
+				result.add(i++,e.getValue());
+			}
 		}
 		return result;
 	}
@@ -386,7 +430,9 @@ public class ArangoDBCache implements Cache2, Cache {
 		List<Object> result = new ArrayList<Object>(entries.size());
 		int i = 0;
 		for (CacheEntry e : entries) {
-			result.add(i++,e.getValue());
+			if (filter.accept(e)) {
+				result.add(i++,e.getValue());
+			}
 		}
 		return result;
 	}
@@ -403,8 +449,8 @@ public class ArangoDBCache implements Cache2, Cache {
 	@Override
 	public void verify() throws CacheException {
 		try {
-			driver.getCollection(cacheName);
-			driver.getCollectionCount(cacheName);
+			checkEntityError(driver.getCollection(cacheName));
+			checkEntityError(driver.getCollectionCount(cacheName));
 		} catch(Throwable e) {
 			throw new CacheException("Could not verify the collection.");
 		}
@@ -421,8 +467,7 @@ public class ArangoDBCache implements Cache2, Cache {
 	private void save(ArangoDBCacheDocument doc) throws ArangoException {
 		Long now = System.currentTimeMillis();
 
-		doc.setLastAccessed(now.intValue());
-		doc.setLastUpdated(now.intValue());
+		doc.setExpires(doc.getExpires() > 0 ? doc.getLifeSpan() + now : 0);
 		
 		if (doc.getId() != null) {
 			driver.updateDocument(doc.getId(), doc);
@@ -433,7 +478,6 @@ public class ArangoDBCache implements Cache2, Cache {
 	
 	private void checkEntityError(BaseEntity entity) throws CacheException {
 		if (entity.isError()) {
-			misses++;
 			throw new CacheException(entity.getErrorMessage());
 		}
 	}

@@ -9,18 +9,33 @@ public class ArangoDBCacheDocument {
 	@SerializedName("_key")
 	private String key;
 	private String data;
-	private int createdOn = 0;
-	private int idle = -1;
-	private int lifeSpan = -1;
-	private int expires = -1;
-	private int hits = 0;
-	private int lastAccessed = 0;
-	private int lastUpdated = 0;
+	private long createdOn = 0;
+	private long idle = -1;
+	private long lifeSpan = -1;
+	private long expires = -1;
+	private long hits = 0;
+	private long lastAccessed = 0;
+	private long lastUpdated = 0;
 	
 	
 	public ArangoDBCacheDocument hit() {
+		long now = System.currentTimeMillis();
 		this.hits++;
+		setLastAccessed(now);
 		return this;
+	}
+	
+	public ArangoDBCacheDocument updateExpiration() {
+		return updateExpiration(System.currentTimeMillis());
+	}
+	public ArangoDBCacheDocument updateExpiration(long when) {
+		if (expires > 0)
+			this.setExpires(when + lifeSpan);
+		return this;
+	}
+	
+	public boolean isExpired() {
+		return expires > 0 && expires < System.currentTimeMillis();
 	}
 	
 ///////////////////////////////////////////////////////////////////////////////
@@ -41,37 +56,38 @@ public class ArangoDBCacheDocument {
 		return this;
 	}
 
-	public ArangoDBCacheDocument setCreatedOn(int createdOn) {
+	public ArangoDBCacheDocument setCreatedOn(long createdOn) {
 		this.createdOn = createdOn;
 		return this;
 	}
 
-	public ArangoDBCacheDocument setIdle(int idle) {
+	public ArangoDBCacheDocument setIdle(long idle) {
 		this.idle = idle;
 		return this;
 	}
 
-	public ArangoDBCacheDocument setLifeSpan(int lifeSpan) {
+	public ArangoDBCacheDocument setLifeSpan(long lifeSpan) {
 		this.lifeSpan = lifeSpan;
 		return this;
 	}
 
-	public ArangoDBCacheDocument setExpires(int expires) {
+	public ArangoDBCacheDocument setExpires(long expires) {
 		this.expires = expires;
 		return this;
 	}
 
-	public ArangoDBCacheDocument setHits(int hits) {
+	public ArangoDBCacheDocument setHits(long hits) {
 		this.hits = hits;
 		return this;
 	}
 
-	public ArangoDBCacheDocument setLastAccessed(int lastAccess) {
+	public ArangoDBCacheDocument setLastAccessed(long lastAccess) {
 		this.lastAccessed = lastAccess;
+		updateExpiration(lastAccess);
 		return this;
 	}
 
-	public ArangoDBCacheDocument setLastUpdated(int lastUpdate) {
+	public ArangoDBCacheDocument setLastUpdated(long lastUpdate) {
 		this.lastUpdated = lastUpdate;
 		return this;
 	}
@@ -92,31 +108,31 @@ public class ArangoDBCacheDocument {
 		return this.data;
 	}
 
-	public int getCreatedOn() {
+	public long getCreatedOn() {
 		return this.createdOn;
 	}
 
-	public int getIdle() {
+	public long getIdle() {
 		return this.idle;
 	}
 
-	public int getLifeSpan() {
+	public long getLifeSpan() {
 		return this.lifeSpan;
 	}
 
-	public int getExpires() {
+	public long getExpires() {
 		return this.expires;
 	}
 
-	public int getHits() {
+	public long getHits() {
 		return this.hits;
 	}
 
-	public int getLastAccessed() {
+	public long getLastAccessed() {
 		return this.lastAccessed;
 	}
 
-	public int getLastUpdated() {
+	public long getLastUpdated() {
 		return this.lastUpdated;
 	}
 

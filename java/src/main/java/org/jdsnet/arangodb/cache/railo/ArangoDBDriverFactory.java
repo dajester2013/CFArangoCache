@@ -1,5 +1,6 @@
 package org.jdsnet.arangodb.cache.railo;
 
+import java.io.IOException;
 import java.util.HashMap;
 
 import railo.runtime.exp.PageException;
@@ -22,7 +23,7 @@ public class ArangoDBDriverFactory {
 //	private static HashMap<String, ArangoDriver> argsMap = new HashMap<String,ArangoDriver>();
 	private static HashMap<ArangoDriver, ArangoConfigure> configMap = new HashMap<ArangoDriver, ArangoConfigure>();
 	
-	public static ArangoDriver openConnection(Struct arguments) throws PageException {
+	public static ArangoDriver openConnection(Struct arguments) throws PageException, IOException {
 		Cast caster = CastImpl.getInstance();
 		ArangoConfigure config = new ArangoConfigure();
 		
@@ -48,12 +49,19 @@ public class ArangoDBDriverFactory {
 		
 		try {
 			drv.createDatabase(db);
-		} catch(ArangoException ex) {
-			ex.printStackTrace();
+		} catch(ArangoException e) {
+			if (e.getErrorNumber() != 1207) {
+				System.err.println("Database creation error - "+e.getErrorMessage());
+				throw new IOException(e);
+			}
 		}
 		
 		drv.setDefaultDatabase(db);
 		return drv;
+	}
+	
+	public static ArangoConfigure getConfiguration(ArangoDriver drv) {
+		return configMap.get(drv);
 	}
 	
 	public static void closeConnection(ArangoDriver drv) {

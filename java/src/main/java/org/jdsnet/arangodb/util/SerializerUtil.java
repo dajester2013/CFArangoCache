@@ -1,7 +1,5 @@
 package org.jdsnet.arangodb.util;
 
-import railo.runtime.exp.PageException;
-
 public interface SerializerUtil {
 	
 	public String serialize(Object obj) throws Throwable;

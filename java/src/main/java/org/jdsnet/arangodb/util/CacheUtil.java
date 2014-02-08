@@ -1,5 +1,13 @@
 package org.jdsnet.arangodb.util;
 
+import java.util.Map;
+
+import org.jdsnet.arangodb.cache.railo.ArangoDBCache;
+import org.jdsnet.arangodb.cache.railo.ArangoDBCacheDocument;
+
+import at.orz.arangodb.ArangoException;
+import at.orz.arangodb.CursorResultSet;
+import at.orz.arangodb.util.MapBuilder;
 import railo.commons.io.cache.Cache;
 import railo.commons.io.cache.CacheEntry;
 import railo.runtime.op.CastImpl;
@@ -33,6 +41,29 @@ public class CacheUtil {
 			+ "\nhit-count:     " + entry.hitCount()
 			+ "\nsize:          " + entry.size()
 			;
+	}
+	
+	public static int flushInvalidDocuments(ArangoDBCache cache) throws ArangoException {
+		Map<String, Object> bindVars = new MapBuilder()
+			.put("now", System.currentTimeMillis())
+			.get();
+		
+		CursorResultSet<ArangoDBCacheDocument> cursor = cache.getConnection().executeQueryWithResultSet(
+			 "for d in "+cache.getCacheName()+" filter d.expires > 0 && d.expires < @now return d"
+			,bindVars
+			,ArangoDBCacheDocument.class
+			,true
+			,1000
+		);
+		
+		int count = cursor.getTotalCount();
+		if (count > 0) {
+			for (ArangoDBCacheDocument doc : cursor) {
+				System.out.println("Expired");
+				cache.getConnection().deleteDocument(doc.getId());
+			}
+		}
+		return count;
 	}
 	
 }

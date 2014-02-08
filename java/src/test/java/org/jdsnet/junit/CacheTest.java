@@ -16,9 +16,10 @@ public class CacheTest {
 		StructImpl arguments = new StructImpl();
 		
 		arguments.put(KeyImpl.getInstance("database"),getDatabase());
-		
-		cache = new ArangoDBCache("Cache", arguments);
-		cache.setSerializer(new CommonSerializer());
+		if (cache == null) {
+			cache = new ArangoDBCache("Cache", arguments);
+			cache.setSerializer(new CommonSerializer());
+		}
 	}
 	
 	public void cleanup() throws Throwable {
