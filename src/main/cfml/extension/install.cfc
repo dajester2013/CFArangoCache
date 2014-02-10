@@ -19,10 +19,6 @@ component accessors=true output=true persistent=false {
 	 * help the method to validate the data. More about these arguments further below.
 	 **/
 	public void function validate(Struct error, String path, Struct config, Numeric step) output=true {
-		writeoutput('validate');
-		writedump(arguments);
-abort;
-
 		return;
 	}
 	 	
