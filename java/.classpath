@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<classpath>
-	<classpathentry kind="src" path="src/main/java"/>
-	<classpathentry kind="src" path="src/test/java"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="con" path="org.apache.ivyde.eclipse.cpcontainer.IVYDE_CONTAINER/?project=CFArangoCache%28Driver%29&amp;ivyXmlPath=ivy.xml&amp;confs=test&amp;ivySettingsPath=%24%7Bworkspace_loc%3ACFArangoCache+Railo+Ext%2Fivysettings.xml%7D&amp;loadSettingsOnDemand=false&amp;propertyFiles="/>
-	<classpathentry kind="con" path="org.apache.ivyde.eclipse.cpcontainer.IVYDE_CONTAINER/?project=CFArangoCache+Railo+Ext&amp;ivyXmlPath=ivy.xml&amp;confs=test&amp;ivySettingsPath=%24%7Bworkspace_loc%3ACFArangoCache+Railo+Ext%2Fivysettings.xml%7D&amp;loadSettingsOnDemand=false&amp;propertyFiles="/>
-	<classpathentry kind="output" path="bin"/>
-</classpath>

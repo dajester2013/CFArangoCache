@@ -38,7 +38,7 @@ component displayname="ArangoDB" extends="Cache" {
 		var c="";
 		savecontent variable="c" {
 			writeoutput("ArangoDB is a multi-model database that support schema-less schemas.");
-		savecontent;
+		}
 		return c;
 	}
 

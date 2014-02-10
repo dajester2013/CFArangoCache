@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+	<info>
+		<type>all</type>
+		<id>B3321895-F1CC-44AC-A95AA2081646611B</id>
+		<name>cfarangocache</name>
+		<label>CFArangoCache</label>
+		<description>
+			<![CDATA[Cache driver and library for the ArangoDB multi-model database.]]>
+		</description>
+		<version>{version}</version>
+		<category><![CDATA[Database & Cache]]></category>
+		<image></image>
+		<paypal/>
+		<author>Jesse Shaffer</author>
+		<codename></codename>
+		<support>http://github.com/dajester2013/CFArangoCache/issues</support>
+		<documentation>http://github.com/dajester2013/CFArangoCache</documentation>
+		<forum>http://github.com/dajester2013/CFArangoCache/issues</forum>
+		<mailinglist />
+		<created>{created}</created> 
+	</info>
+</config>
