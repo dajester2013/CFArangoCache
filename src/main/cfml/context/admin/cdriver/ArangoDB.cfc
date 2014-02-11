@@ -20,21 +20,21 @@ component displayname="ArangoDB" extends="Cache" {
 	/**
 	 *
 	 **/
-	public String function getClass() {
+	public string function getClass() {
 		return "org.jdsnet.arangodb.cache.railo.ArangoDBCache";
 	}
 
 	/**
 	 * 
 	 **/
-	public String function getLabel() output=false {
+	public string function getLabel() output=false {
 		return "ArangoDB";
 	}
 
 	/**
 	 *
 	 **/
-	public String function getDescription() output="no" {
+	public string function getDescription() output="no" {
 		var c="";
 		savecontent variable="c" {
 			writeoutput("ArangoDB is a multi-model database that support schema-less schemas.");

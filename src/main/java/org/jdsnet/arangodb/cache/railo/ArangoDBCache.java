@@ -1,3 +1,19 @@
+/*
+ *  Copyright 2014 Jesse Shaffer
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 /**
  * 
  */
@@ -15,6 +31,7 @@ import org.jdsnet.arangodb.util.SerializerUtil;
 import at.orz.arangodb.ArangoDriver;
 import at.orz.arangodb.ArangoException;
 import at.orz.arangodb.entity.BaseEntity;
+import at.orz.arangodb.entity.CollectionType;
 import at.orz.arangodb.entity.CursorEntity;
 import at.orz.arangodb.entity.DocumentEntity;
 import at.orz.arangodb.entity.IndexType;
@@ -33,7 +50,7 @@ import railo.runtime.type.StructImpl;
  * @author jesse.shaffer
  * 
  */
-public class ArangoDBCache implements Cache2, Cache {
+public class ArangoDBCache implements Cache2 {
 
 	private ArangoDriver driver;
 	private String cacheName;
@@ -83,7 +100,7 @@ public class ArangoDBCache implements Cache2, Cache {
 		try {
 			driver.getCollection(cacheName);
 		} catch(ArangoException e) {
-			driver.createCollection(cacheName);
+			driver.createCollection(cacheName,false,true,null,false,false,CollectionType.DOCUMENT);
 			driver.createIndex(cacheName, IndexType.HASH, false, "lifeSpan");
 			driver.createIndex(cacheName, IndexType.HASH, false, "expires");
 			driver.createIndex(cacheName, IndexType.HASH, false, "idle");
@@ -320,16 +337,17 @@ public class ArangoDBCache implements Cache2, Cache {
 	@Override
 	public void put(String key, Object value, Long idleTime, Long lifeSpan) {
 		long now = System.currentTimeMillis();
-		// int idle = idleTime == null ? 0 : idleTime.intValue(); idle not
-		// supported since version 2
-		long idle = 0;
+		long idle = idleTime == null ? 0 : idleTime;
 		long life = lifeSpan == null ? 0 : lifeSpan;
 		
 		ArangoDBCacheDocument doc;
 		if (contains(key)) {
 			try {
 				doc = ((ArangoDBCacheEntry) getCacheEntry(key)).getDocument();
+				doc.setData(serializer.serialize(value));
 				doc.setLastUpdated(now);
+				doc.setLastAccessed(now);
+				doc.updateExpiration(now);
 				save(doc);
 			} catch (Throwable e) {}
 		} else {
@@ -465,10 +483,6 @@ public class ArangoDBCache implements Cache2, Cache {
 	}
 
 	private void save(ArangoDBCacheDocument doc) throws ArangoException {
-		Long now = System.currentTimeMillis();
-
-		doc.setExpires(doc.getExpires() > 0 ? doc.getLifeSpan() + now : 0);
-		
 		if (doc.getId() != null) {
 			driver.updateDocument(doc.getId(), doc);
 		} else {
