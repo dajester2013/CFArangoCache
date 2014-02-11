@@ -65,23 +65,18 @@ public class LifespanTest {
 
 		ArangoDBCacheEntry e;
 		e = (ArangoDBCacheEntry)cache.getCacheEntry(key);
-//		assertEquals(e.getDocument().getExpires(), e.getDocument().getLastAccessed() + e.getDocument().getLifeSpan());
 		
-		// hit 3 times at halfway through the life span. should not timeout
-		for (int i=0; i<3; i++) {
-			Thread.sleep(2500);
+		Thread.sleep(2500);
 			
-			e = (ArangoDBCacheEntry)cache.getCacheEntry(key);
-//			assertEquals(e.getDocument().getExpires(), e.getDocument().getLastAccessed() + e.getDocument().getLifeSpan());
-			assertTrue(e.lastHit().getTime() > startedAt);
-		}
+		e = (ArangoDBCacheEntry)cache.getCacheEntry(key);
+		assertTrue(e.lastHit().getTime() > startedAt);
 		
 		// let it timeout
-		Thread.sleep(5100);
+		Thread.sleep(2501);
 		
 		String defVal = "defaultValue";
 		assertEquals(defVal,cache.getValue(key,defVal));
-//		assertEquals(0, cache.getConnection().getDocuments(cache.getCacheName()).size());
+		assertEquals(0, cache.getConnection().getDocuments(cache.getCacheName()).size());
 	}
 	
 }
