@@ -21,7 +21,6 @@ import static junit.framework.Assert.*;
 import java.io.IOException;
 
 import org.jdsnet.arangodb.cache.railo.ArangoDBCache;
-import org.jdsnet.arangodb.cache.railo.ArangoDBCacheEntry;
 import org.jdsnet.arangodb.util.CommonSerializer;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -31,11 +30,9 @@ import at.orz.arangodb.ArangoException;
 import railo.runtime.type.KeyImpl;
 import railo.runtime.type.StructImpl;
 
-public class LifespanTest {
+public class IdleTest {
 	
-	public LifespanTest() throws IOException {super();}
-	
-	private static String dbname = "LS_Test";
+	private static String dbname = "IDLE_Test";
 	private static ArangoDBCache cache;
 
 	@BeforeClass
@@ -56,32 +53,18 @@ public class LifespanTest {
 	}
 	
 	@Test
-	public void TestCacheTimeoutObject() throws Throwable {
-		String key = "key";
-		String value = "value";
-		
+	public void TestCacheIdleTimeoutObject() throws Throwable {
+		String key = "idlekey";
 		long startedAt = System.currentTimeMillis();
-		cache.put(key, value, 0L, 5000L);
-
-		ArangoDBCacheEntry e;
-		e = (ArangoDBCacheEntry)cache.getCacheEntry(key);
-//		assertEquals(e.getDocument().getExpires(), e.getDocument().getLastAccessed() + e.getDocument().getLifeSpan());
 		
-		// hit 3 times at halfway through the life span. should not timeout
-		for (int i=0; i<3; i++) {
-			Thread.sleep(2500);
-			
-			e = (ArangoDBCacheEntry)cache.getCacheEntry(key);
-//			assertEquals(e.getDocument().getExpires(), e.getDocument().getLastAccessed() + e.getDocument().getLifeSpan());
-			assertTrue(e.lastHit().getTime() > startedAt);
-		}
-		
+		cache.put(key, startedAt, 0L, 5000L);
+		Thread.sleep(2000);
+		assertEquals(startedAt,cache.getValue(key));
+		Thread.sleep(2000);
+		assertEquals(startedAt,cache.getValue(key));
 		// let it timeout
 		Thread.sleep(5100);
-		
-		String defVal = "defaultValue";
-		assertEquals(defVal,cache.getValue(key,defVal));
-//		assertEquals(0, cache.getConnection().getDocuments(cache.getCacheName()).size());
+		assertEquals(0, cache.getValue(key,0));
 	}
 	
 }

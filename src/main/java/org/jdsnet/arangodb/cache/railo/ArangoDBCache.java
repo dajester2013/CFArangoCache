@@ -100,7 +100,7 @@ public class ArangoDBCache implements Cache2 {
 		try {
 			driver.getCollection(cacheName);
 		} catch(ArangoException e) {
-			driver.createCollection(cacheName,false,true,null,false,false,CollectionType.DOCUMENT);
+			driver.createCollection(cacheName);/*,false,true,null,false,false,CollectionType.DOCUMENT*/
 			driver.createIndex(cacheName, IndexType.HASH, false, "lifeSpan");
 			driver.createIndex(cacheName, IndexType.HASH, false, "expires");
 			driver.createIndex(cacheName, IndexType.HASH, false, "idle");
